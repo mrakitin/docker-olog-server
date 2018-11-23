@@ -1,5 +1,7 @@
 #!/bin/sh
 
+set -e
+
 export PATH=${PATH}:${GLASSFISH_HOME}/bin
 
 POSTGRES_DATASOURCE=org.postgresql.ds.PGConnectionPoolDataSource
@@ -39,8 +41,8 @@ REALM_JAAS_CTX=ldapRealm
 
 JNDI_RESOURCE_TYPE="javax.naming.directory.Directory"
 JNDI_FACTORY_CLASS="com.sun.jndi.ldap.LdapCtxFactory"
-JNDI_URL="\"ldap://10.0.4.57:389/cn=users,dc=lnls,dc=br\""
-JNDI_PRINCIPAL="\"cn=olog-admin,dc=lnls,dc=br\""
+JNDI_URL="\"ldap://localhost:389/dc=cf-test,dc=bnl,dc=gov\""
+JNDI_PRINCIPAL="\"dc=cf-test,dc=bnl,dc=gov\""
 
 echo "AS_ADMIN_PASSWORD=" > /tmp/glassfishpwd
 echo "AS_ADMIN_NEWPASSWORD=${ADMIN_PASSWORD}" >> /tmp/glassfishpwd
@@ -149,19 +151,21 @@ asadmin --user=admin --passwordfile=/tmp/glassfishpwd \
 
 asadmin --user=admin --passwordfile=/tmp/glassfishpwd restart-domain
 
+olog_version='2.2.9'
+
 # Copies olog service to the server's directory
 asadmin --user=admin --passwordfile=/tmp/glassfishpwd \
-                deploy ${GLASSFISH_CONF_FOLDER}/olog-service-2.2.9.war
+                deploy ${GLASSFISH_CONF_FOLDER}/olog-service-${olog_version}.war
 
 # Copies web client
-cp -r ${GLASSFISH_CONF_FOLDER}/logbook/Olog/public_html/* ${GLASSFISH_HOME}/glassfish/domains/domain1/applications/olog-service-2.2.9
+cp -r ${GLASSFISH_CONF_FOLDER}/logbook/Olog/public_html/* ${GLASSFISH_HOME}/glassfish/domains/domain1/applications/olog-service-${olog_version}
 
 # Changes web manager settings
-sed -i "s/allowDeletingLogs = false/allowDeletingLogs = true/" ${GLASSFISH_HOME}/glassfish/domains/domain1/applications/olog-service-2.2.9/static/js/configuration.js
-sed -i "s/logId = \$log.attr('id');/logId = xml.log[0].id;/" ${GLASSFISH_HOME}/glassfish/domains/domain1/applications/olog-service-2.2.9/static/js/rest.js
-sed -i 's#datePickerDateFormatMometParseString = .*#datePickerDateFormatMometParseString = "DD/MM/YYYY hh:mm";#' ${GLASSFISH_HOME}/glassfish/domains/domain1/applications/olog-service-2.2.9/static/js/configuration.js
-sed -i 's#dateFormat = .*#dateFormat = "DD/MM/YY, hh:mm A";#' ${GLASSFISH_HOME}/glassfish/domains/domain1/applications/olog-service-2.2.9/static/js/configuration.js
-sed -i 's#datePickerDateFormat = .*#datePickerDateFormat = "dd/mm/yy";#' ${GLASSFISH_HOME}/glassfish/domains/domain1/applications/olog-service-2.2.9/static/js/configuration.js
+sed -i "s/allowDeletingLogs = false/allowDeletingLogs = true/" ${GLASSFISH_HOME}/glassfish/domains/domain1/applications/olog-service-${olog_version}/static/js/configuration.js
+sed -i "s/logId = \$log.attr('id');/logId = xml.log[0].id;/" ${GLASSFISH_HOME}/glassfish/domains/domain1/applications/olog-service-${olog_version}/static/js/rest.js
+sed -i 's#datePickerDateFormatMometParseString = .*#datePickerDateFormatMometParseString = "DD/MM/YYYY hh:mm";#' ${GLASSFISH_HOME}/glassfish/domains/domain1/applications/olog-service-${olog_version}/static/js/configuration.js
+sed -i 's#dateFormat = .*#dateFormat = "DD/MM/YY, hh:mm A";#' ${GLASSFISH_HOME}/glassfish/domains/domain1/applications/olog-service-${olog_version}/static/js/configuration.js
+sed -i 's#datePickerDateFormat = .*#datePickerDateFormat = "dd/mm/yy";#' ${GLASSFISH_HOME}/glassfish/domains/domain1/applications/olog-service-${olog_version}/static/js/configuration.js
 
 # Generates SSL certificate for secure connection
 # Get local ip address
