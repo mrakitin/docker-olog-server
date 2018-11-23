@@ -1,5 +1,7 @@
 #!/bin/sh
 
+. `dirname $0`/env.sh
+
 set -e
 
 export PATH=${PATH}:${GLASSFISH_HOME}/bin
