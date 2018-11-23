@@ -34,7 +34,19 @@ RUN rm ${GLASSFISH_CONF_FOLDER}/${MYSQL_CONNECTOR}.tar.gz
 RUN mv ${GLASSFISH_CONF_FOLDER}/${MYSQL_CONNECTOR}/${MYSQL_CONNECTOR}-bin.jar ${GLASSFISH_HOME}/glassfish/lib
 RUN rm -R ${GLASSFISH_CONF_FOLDER}/${MYSQL_CONNECTOR}
 
-# RUN apt-get update && apt-get install nano
+###############################################################################
+# MR: install vim and set configs for bash and vim
+RUN apt-get update && apt-get install -y vim
+# Dot files:
+RUN cd && git clone https://github.com/mrakitin/dotfiles && \
+    cp -v dotfiles/bashrc /root/.bashrc && \
+    cp -v dotfiles/vimrc /root/.vimrc && \
+    cp -v dotfiles/bash_history /root/.bash_history && \
+    rm -rfv dotfiles/
+
+ENV HISTFILE=/root/.bash_history
+###############################################################################
+
 
 # Clones olog web client
 RUN git clone https://github.com/Olog/logbook.git ${GLASSFISH_CONF_FOLDER}/logbook
@@ -48,4 +60,4 @@ COPY bin/olog-service-2.2.9.war ${GLASSFISH_CONF_FOLDER}/olog-service-2.2.9.war
 
 COPY setup-olog.sh index.html ${GLASSFISH_CONF_FOLDER}/
 
-CMD ["sh", "-c", "${GLASSFISH_CONF_FOLDER}/setup-olog.sh"]
+# CMD ["sh", "-c", "${GLASSFISH_CONF_FOLDER}/setup-olog.sh"]
