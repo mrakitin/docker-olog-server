@@ -18,8 +18,8 @@ DB_URL=${DB_URL:-olog-mysql-db}
 DB_POSTGRES_URL=jdbc:postgresql://${DB_URL}:5432/olog
 DB_MYSQL_URL=${DB_URL}
 
-DB_USER=${DB_USER:-lnls_olog_user}
-DB_PASSWORD=${DB_PASSWORD:-controle}
+DB_USER=${DB_USER:-olog_user}
+DB_PASSWORD=${DB_PASSWORD:-password}
 DB_NAME=${DB_NAME:-olog}
 
 # LDAP server's environment server
