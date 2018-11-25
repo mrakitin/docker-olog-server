@@ -41,10 +41,16 @@ REALM_JAAS_CTX=ldapRealm
 # REALM_SEARCH_BIND_DN="\"${BIND_DN}\""
 # REALM_SEARCH_BIND_PASS="\"${BIND_PASS}\""
 
-JNDI_RESOURCE_TYPE="javax.naming.directory.Directory"
-JNDI_FACTORY_CLASS="com.sun.jndi.ldap.LdapCtxFactory"
-JNDI_URL="\"ldap://localhost:389/dc=cf-test,dc=bnl,dc=gov\""
-JNDI_PRINCIPAL="\"dc=cf-test,dc=bnl,dc=gov\""
+# JNDI_RESOURCE_TYPE="javax.naming.directory.Directory"
+# JNDI_FACTORY_CLASS="com.sun.jndi.ldap.LdapCtxFactory"
+# JNDI_URL="\"ldap://localhost:389/dc=cf-test,dc=bnl,dc=gov\""
+# JNDI_PRINCIPAL="\"dc=cf-test,dc=bnl,dc=gov\""
+
+# File-based authentication. See
+# https://github.com/lnls-sirius/docker-olog-server/issues/2 for more details.
+REALM_CLASS_NAME=com.sun.enterprise.security.auth.realm.file.FileRealm
+REALM_PROPERTY=jaas-context=fileRealm:defaultuser=admin:file=\${com.sun.aas.instanceRoot}/config/admin-keyfile
+
 
 echo "AS_ADMIN_PASSWORD=" > /tmp/glassfishpwd
 echo "AS_ADMIN_NEWPASSWORD=${ADMIN_PASSWORD}" >> /tmp/glassfishpwd
@@ -115,41 +121,55 @@ asadmin --user=admin --passwordfile=/tmp/glassfishpwd \
 
 # LDAP settings 
 
-LDAP_SETTINGS="jaas-context=${REALM_JAAS_CTX}:base-dn=${REALM_BASE_DN}:directory=${REALM_URL}:search-filter=${REALM_SEARCH_FILTER}"
+# LDAP_SETTINGS="jaas-context=${REALM_JAAS_CTX}:base-dn=${REALM_BASE_DN}:directory=${REALM_URL}:search-filter=${REALM_SEARCH_FILTER}"
 
-if [ ! -z ${REALM_SEARCH_BIND_DN+x} ]; then
-    LDAP_SETTINGS="${LDAP_SETTINGS}:search-bind-dn=${REALM_SEARCH_BIND_DN}"
-fi
+# if [ ! -z ${REALM_SEARCH_BIND_DN+x} ]; then
+#     LDAP_SETTINGS="${LDAP_SETTINGS}:search-bind-dn=${REALM_SEARCH_BIND_DN}"
+# fi
 
-if [ ! -z  ${REALM_SEARCH_BIND_PASS+x} ]; then
-    LDAP_SETTINGS="${LDAP_SETTINGS}:search-bind-password=${REALM_SEARCH_BIND_PASS}"
-fi
+# if [ ! -z  ${REALM_SEARCH_BIND_PASS+x} ]; then
+#     LDAP_SETTINGS="${LDAP_SETTINGS}:search-bind-password=${REALM_SEARCH_BIND_PASS}"
+# fi
 
-if [ ! -z ${REALM_GROUP_DN+x} ]; then
-    LDAP_SETTINGS="${LDAP_SETTINGS}:group-base-dn=${REALM_GROUP_DN}"
-else
-    LDAP_SETTINGS="${LDAP_SETTINGS}:assign-groups=\"olog-admins, olog-logbooks, olog-tags, olog-logs\""
-fi
+# if [ ! -z ${REALM_GROUP_DN+x} ]; then
+#     LDAP_SETTINGS="${LDAP_SETTINGS}:group-base-dn=${REALM_GROUP_DN}"
+# else
+#     LDAP_SETTINGS="${LDAP_SETTINGS}:assign-groups=\"olog-admins, olog-logbooks, olog-tags, olog-logs\""
+# fi
 
-if [ ! -z ${REALM_GROUP_FILTER+x} ]; then
-    LDAP_SETTINGS="${LDAP_SETTINGS}:group-search-filter=${REALM_GROUP_FILTER}"
-fi
+# if [ ! -z ${REALM_GROUP_FILTER+x} ]; then
+#     LDAP_SETTINGS="${LDAP_SETTINGS}:group-search-filter=${REALM_GROUP_FILTER}"
+# fi
 
 set -x
 
+# Configure file-based authentication
 asadmin --user=admin --passwordfile=/tmp/glassfishpwd \
-                 create-auth-realm \
-                 --classname ${REALM_CLASS_NAME} \
-                 --property "${LDAP_SETTINGS}" \
-                 olog
+        create-auth-realm \
+        --classname ${REALM_CLASS_NAME} \
+        --property "${REALM_PROPERTY}" \
+        olog
+
+# See https://docs.oracle.com/cd/E18930_01/html/821-2433/create-file-user-1.html#SJSASEEREFMANcreate-file-user-1
+echo "AS_ADMIN_USERPASSWORD=1234" >> /tmp/glassfishpwd
+asadmin --user=admin --passwordfile=/tmp/glassfishpwd create-file-user --groups olog-users olog-user
+
+echo "AS_ADMIN_PASSWORD=${ADMIN_PASSWORD}" > /tmp/glassfishpwd
+echo "AS_ADMIN_MASTERPASSWORD=${CERTIFICATE_PASSWORD}" >> /tmp/glassfishpwd
+
+# asadmin --user=admin --passwordfile=/tmp/glassfishpwd \
+#                  create-auth-realm \
+#                  --classname ${REALM_CLASS_NAME} \
+#                  --property "${LDAP_SETTINGS}" \
+#                  olog
 
 # Configures JNDI resource
-asadmin --user=admin --passwordfile=/tmp/glassfishpwd \
-                create-custom-resource \
-                --restype ${JNDI_RESOURCE_TYPE} \
-                --factoryclass ${JNDI_FACTORY_CLASS} \
-                --property URL=${JNDI_URL}:javax.naming.security.principal=${JNDI_PRINCIPAL} \
-                ologGroups
+# asadmin --user=admin --passwordfile=/tmp/glassfishpwd \
+#                 create-custom-resource \
+#                 --restype ${JNDI_RESOURCE_TYPE} \
+#                 --factoryclass ${JNDI_FACTORY_CLASS} \
+#                 --property URL=${JNDI_URL}:javax.naming.security.principal=${JNDI_PRINCIPAL} \
+#                 ologGroups
 
 asadmin --user=admin --passwordfile=/tmp/glassfishpwd restart-domain
 
