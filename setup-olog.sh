@@ -49,7 +49,7 @@ REALM_JAAS_CTX=ldapRealm
 # File-based authentication. See
 # https://github.com/lnls-sirius/docker-olog-server/issues/2 for more details.
 REALM_CLASS_NAME=com.sun.enterprise.security.auth.realm.file.FileRealm
-REALM_PROPERTY=jaas-context=fileRealm:defaultuser=admin:file=\${com.sun.aas.instanceRoot}/config/admin-keyfile
+REALM_PROPERTY=jaas-context=fileRealm:defaultuser=admin:file=\${com.sun.aas.instanceRoot}/config/keyfile
 
 
 echo "AS_ADMIN_PASSWORD=" > /tmp/glassfishpwd
@@ -186,9 +186,11 @@ cp -r ${GLASSFISH_CONF_FOLDER}/logbook/Olog/public_html/* ${GLASSFISH_HOME}/glas
 # Changes web manager settings
 sed -i "s/allowDeletingLogs = false/allowDeletingLogs = true/" ${GLASSFISH_HOME}/glassfish/domains/domain1/applications/olog-service-${olog_version}/static/js/configuration.js
 sed -i "s/logId = \$log.attr('id');/logId = xml.log[0].id;/" ${GLASSFISH_HOME}/glassfish/domains/domain1/applications/olog-service-${olog_version}/static/js/rest.js
-sed -i 's#datePickerDateFormatMometParseString = .*#datePickerDateFormatMometParseString = "DD/MM/YYYY hh:mm";#' ${GLASSFISH_HOME}/glassfish/domains/domain1/applications/olog-service-${olog_version}/static/js/configuration.js
-sed -i 's#dateFormat = .*#dateFormat = "DD/MM/YY, hh:mm A";#' ${GLASSFISH_HOME}/glassfish/domains/domain1/applications/olog-service-${olog_version}/static/js/configuration.js
-sed -i 's#datePickerDateFormat = .*#datePickerDateFormat = "dd/mm/yy";#' ${GLASSFISH_HOME}/glassfish/domains/domain1/applications/olog-service-${olog_version}/static/js/configuration.js
+# sed -i 's#datePickerDateFormatMometParseString = .*#datePickerDateFormatMometParseString = "DD/MM/YYYY hh:mm";#' ${GLASSFISH_HOME}/glassfish/domains/domain1/applications/olog-service-${olog_version}/static/js/configuration.js
+# sed -i 's#dateFormat = .*#dateFormat = "DD/MM/YY, hh:mm A";#' ${GLASSFISH_HOME}/glassfish/domains/domain1/applications/olog-service-${olog_version}/static/js/configuration.js
+# sed -i 's#datePickerDateFormat = .*#datePickerDateFormat = "dd/mm/yy";#' ${GLASSFISH_HOME}/glassfish/domains/domain1/applications/olog-service-${olog_version}/static/js/configuration.js
+
+sed -i 's;var serviceurl = window.location.protocol + "//" + window.location.host + "/Olog/resources/";var serviceurl = "https://localhost:8181/Olog/resources/";g' ${GLASSFISH_HOME}/glassfish/domains/domain1/applications/olog-service-${olog_version}/static/js/configuration.js
 
 # Generates SSL certificate for secure connection
 
@@ -203,6 +205,6 @@ sed -i "s:s1as:olog:g" ${GLASSFISH_HOME}/glassfish/domains/domain1/config/domain
 
 cp ${GLASSFISH_CONF_FOLDER}/index.html ${GLASSFISH_HOME}/glassfish/domains/domain1/docroot/
 
-asadmin --user=admin --passwordfile=/tmp/glassfishpwd start-domain -v
+asadmin --user=admin --passwordfile=/tmp/glassfishpwd start-domain
 
-rm -f /tmp/glassfishpwd
+# rm -f /tmp/glassfishpwd
