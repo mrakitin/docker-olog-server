@@ -4,4 +4,3 @@ export DB_USER=olog_user
 export DB_PASSWORD=password
 export DB_URL=olog-mysql-db
 export DB_NAME=olog
-export REALM_URL="ldap://localhost:389"

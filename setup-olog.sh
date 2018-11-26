@@ -191,11 +191,9 @@ sed -i 's#dateFormat = .*#dateFormat = "DD/MM/YY, hh:mm A";#' ${GLASSFISH_HOME}/
 sed -i 's#datePickerDateFormat = .*#datePickerDateFormat = "dd/mm/yy";#' ${GLASSFISH_HOME}/glassfish/domains/domain1/applications/olog-service-${olog_version}/static/js/configuration.js
 
 # Generates SSL certificate for secure connection
-# Get local ip address
-IP_ADDRESS=$(hostname)
 
 # Generates keystore
-keytool -genkey -alias olog -keyalg RSA -dname "CN=${IP_ADDRESS}, OU=Controls Group, O=LNLS, L=Campinas, ST=Sao Paulo, C=BR" -storepass ${CERTIFICATE_PASSWORD} -keypass ${CERTIFICATE_PASSWORD} -keystore ${GLASSFISH_CONF_FOLDER}/olog.keystore
+keytool -genkey -alias olog -keyalg RSA -dname "CN=olog-server, OU=DAMA, O=NSLS-II, L=Upton, ST=NY, C=US" -storepass ${CERTIFICATE_PASSWORD} -keypass ${CERTIFICATE_PASSWORD} -keystore ${GLASSFISH_CONF_FOLDER}/olog.keystore -storetype pkcs12
 keytool -exportcert -keystore ${GLASSFISH_CONF_FOLDER}/olog.keystore -alias olog -storepass ${CERTIFICATE_PASSWORD} -file ${GLASSFISH_CONF_FOLDER}/olog.crt
 keytool -importkeystore -srckeystore ${GLASSFISH_CONF_FOLDER}/olog.keystore -srcstorepass ${CERTIFICATE_PASSWORD} -destkeystore ${GLASSFISH_HOME}/glassfish/domains/domain1/config/keystore.jks -deststorepass ${CERTIFICATE_PASSWORD}
 
