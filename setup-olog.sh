@@ -152,7 +152,8 @@ asadmin --user=admin --passwordfile=/tmp/glassfishpwd \
 
 # See https://docs.oracle.com/cd/E18930_01/html/821-2433/create-file-user-1.html#SJSASEEREFMANcreate-file-user-1
 echo "AS_ADMIN_USERPASSWORD=1234" >> /tmp/glassfishpwd
-asadmin --user=admin --passwordfile=/tmp/glassfishpwd create-file-user --groups olog-users olog-user
+asadmin --user=admin --passwordfile=/tmp/glassfishpwd create-file-user --groups olog-admins olog-admin
+asadmin --user=admin --passwordfile=/tmp/glassfishpwd create-file-user --groups olog-logs olog-user
 
 echo "AS_ADMIN_PASSWORD=${ADMIN_PASSWORD}" > /tmp/glassfishpwd
 echo "AS_ADMIN_MASTERPASSWORD=${CERTIFICATE_PASSWORD}" >> /tmp/glassfishpwd
