@@ -4,7 +4,7 @@ This Docker image is based on https://github.com/lnls-sirius/docker-olog-server.
 
 ## Running
 
-### Cloning the repos and using a convenience run scripts:
+### Cloning the repos and using convenience run scripts:
 
 1) Start the `olog-mysql-db` container in the daemon mode first:
   - `git clone https://github.com/mrakitin/docker-olog-mysql-db`
@@ -35,6 +35,6 @@ ad314a3f34d9        mrakitin/olog-mysql-db:latest   "docker-entrypoint.s…"   1
 
 ## Dockerhub
 
-The following images are pushed to the Dockerhub repos:
+The following images are pushed to Dockerhub:
 - https://hub.docker.com/r/mrakitin/olog-server
 - https://hub.docker.com/r/mrakitin/olog-mysql-db
