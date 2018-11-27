@@ -4,10 +4,11 @@
 
 set -e
 
+OLOG_VERSION=${OLOG_VERSION:-2.2.9}
+
 export PATH=${PATH}:${GLASSFISH_HOME}/bin
 
 MYSQL_DATASOURCE=com.mysql.jdbc.jdbc2.optional.MysqlConnectionPoolDataSource
-
 RESOURCE_TYPE=javax.sql.ConnectionPoolDataSource
 CONNECTION_POOL_NAME=OlogPool
 
@@ -37,7 +38,7 @@ echo "AS_ADMIN_MASTERPASSWORD=${CERTIFICATE_PASSWORD}"    >> /tmp/glassfishpwd
 # Start asadmin console and the domain
 asadmin --user=admin --passwordfile=/tmp/glassfishpwd start-domain
 
-asadmin --user=admin --passwordfile=/tmp/glassfishpwd --host localhost --port 4848 enable-secure-admin
+asadmin --user=admin --passwordfile=/tmp/glassfishpwd --host localhost --port ${OLOG_ADMIN_PORT} enable-secure-admin
 
 # Add JVM options to follow the container's CPU and RAM limits
 asadmin --user=admin --passwordfile=/tmp/glassfishpwd create-jvm-options "-XX\:+UnlockExperimentalVMOptions:-XX\:+UseCGroupMemoryLimitForHeap:-Djavax.net.ssl.trustStore=${GLASSFISH_HOME}/glassfish/domains/domain1/config/keystore.jks:-Djavax.net.ssl.keyStore=${GLASSFISH_HOME}/glassfish/domains/domain1/config/keystore.jks"
@@ -46,6 +47,10 @@ asadmin --user=admin --passwordfile=/tmp/glassfishpwd restart-domain
 
 # Grant derby socket permissions and starts derby connection pool
 asadmin --user=admin --passwordfile=/tmp/glassfishpwd start-database
+
+# Waits for the database to be ready
+chmod +x /opt/wait-for-it/wait-for-it.sh
+/opt/wait-for-it/wait-for-it.sh ${DB_MYSQL_URL}:${DB_PORT}
 
 # Configures connection pool for MySQL
 asadmin --user=admin --passwordfile=/tmp/glassfishpwd \
@@ -80,7 +85,7 @@ echo "AS_ADMIN_MASTERPASSWORD=${CERTIFICATE_PASSWORD}" >> /tmp/glassfishpwd
 
 asadmin --user=admin --passwordfile=/tmp/glassfishpwd restart-domain
 
-olog_version='2.2.9'
+olog_version=${OLOG_VERSION}
 
 # Copies olog service to the server's directory
 asadmin --user=admin --passwordfile=/tmp/glassfishpwd \
@@ -93,7 +98,7 @@ cp -r ${GLASSFISH_CONF_FOLDER}/logbook/Olog/public_html/* ${GLASSFISH_HOME}/glas
 sed -i "s/allowDeletingLogs = false/allowDeletingLogs = true/" ${GLASSFISH_HOME}/glassfish/domains/domain1/applications/olog-service-${olog_version}/static/js/configuration.js
 sed -i "s/logId = \$log.attr('id');/logId = xml.log[0].id;/" ${GLASSFISH_HOME}/glassfish/domains/domain1/applications/olog-service-${olog_version}/static/js/rest.js
 
-sed -i 's;var serviceurl = window.location.protocol + "//" + window.location.host + "/Olog/resources/";var serviceurl = "https://localhost:8181/Olog/resources/";g' ${GLASSFISH_HOME}/glassfish/domains/domain1/applications/olog-service-${olog_version}/static/js/configuration.js
+sed -i 's;var serviceurl = window.location.protocol + "//" + window.location.host + "/Olog/resources/";var serviceurl = "https://localhost:'"${OLOG_SSL_PORT}"'/Olog/resources/";g' ${GLASSFISH_HOME}/glassfish/domains/domain1/applications/olog-service-${olog_version}/static/js/configuration.js
 
 # Generates SSL certificate for secure connection
 
@@ -109,10 +114,5 @@ sed -i "s:s1as:olog:g" ${GLASSFISH_HOME}/glassfish/domains/domain1/config/domain
 cp ${GLASSFISH_CONF_FOLDER}/index.html ${GLASSFISH_HOME}/glassfish/domains/domain1/docroot/
 
 # This part should be done after the image is built:
-
-# Waits for the database to be ready
-# chmod +x /opt/wait-for-it/wait-for-it.sh
-# /opt/wait-for-it/wait-for-it.sh ${DB_MYSQL_URL}:3306
-
 # asadmin --user=admin --passwordfile=/tmp/glassfishpwd start-domain
 # rm -f /tmp/glassfishpwd

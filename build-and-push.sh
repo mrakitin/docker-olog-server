@@ -1,8 +1,18 @@
 #!/bin/bash
 
+. `dirname $0`/env.sh
+
 # Check if the required DOCKER_ID_USER is set up in the env vars
 env | grep 'DOCKER_ID_USER=' || (echo 'ERROR: "DOCKER_ID_USER" must be set up in your env' && exit 1)
 image_name='olog-server'
+mysql_image_name='olog-mysql-db'
+
+mysql_container=$(docker ps -a | grep ${mysql_image_name})
+
+if [ -z ${mysql_container:+x} ]; then
+    echo "ERROR: required '${mysql_image_name}' container is not running. Start it first."
+    exit 2
+fi
 
 timestamp="$(date +%Y%m%d%H%M%S)"
 logfile="build_${timestamp}.log"
@@ -11,6 +21,7 @@ logfile="build_${timestamp}.log"
 docker image build --no-cache \
                    -t $DOCKER_ID_USER/${image_name}:latest \
                    -t $DOCKER_ID_USER/${image_name}:${timestamp} \
+                   --network=${DOCKER_NETWORK} \
                    . > $logfile 2>&1
 
 # Check if the image was built successfully. Example of last 3 lines:
@@ -26,8 +37,6 @@ image_id=$(echo $out | awk '{print $3}')
 echo "Generated image ID: ${image_id}" >> $logfile 2>&1
 echo -e  "\nDocker images:"            >> $logfile 2>&1
 docker images | grep ${image_id}       >> $logfile 2>&1
-
-exit 9999
 
 # Push the built images (requires running "docker login" before)
 docker push $DOCKER_ID_USER/${image_name}:latest       >> $logfile 2>&1

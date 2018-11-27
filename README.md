@@ -1,39 +1,40 @@
 # Docker images for the Olog logging service
 
-Docker image which wraps an Olog system instance.
-
-## Building
-
-1) Edit `env-vars.sh` parameters accordingly.
-2) Execute `build-docker-olog-server.sh` to build the image. Before doing that, change `setup-olog.sh` to reflect your LDAP settings.
+This Docker image is based on https://github.com/lnls-sirius/docker-olog-server.
 
 ## Running
 
-To run this image, use Docker Compose, Swarm or Kubernetes configuration files provided in this [project](https://github.com/lnls-sirius/docker-olog-compose). Enjoy!
+### Cloning the repos and using a convenience run scripts:
 
-### Environment variables
+1) Start the `olog-mysql-db` container in the daemon mode first:
+  - `git clone https://github.com/mrakitin/docker-olog-mysql-db`
+  - `cd docker-olog-mysql-db`
+  - `./run-docker-olog-db.sh`
+2) Start the `olog-server` container in the daemon mode:
+  - `git clone https://github.com/mrakitin/docker-olog-server`
+  - `cd docker-olog-server`
+  - `./run-docker-olog-server.sh`
+3) Access this page in your browser: https://localhost:8181 (accept the security certificate warning)
 
-This image expects that the following variables be overriden when it is executed: 
+### Using Docker commands directly:
 
-1) `ADMIN_PASSWORD` is the password used for administrative functions. It must used to access the web interface through the port 4848 or with any `asadmin` command inside the container. By default, it is set to `controle`.
-2) `CERTIFICATE_PASSWORD` is the password which will be used to create the auto-signed certificate for secure connections. The default value for this parameter is `controle`.
+0) Create a network:
+  - `docker network create olog-network`
+1) Start the `olog-mysql-db` container in the daemon mode first:
+  - `docker run -d --name=olog-mysql-db -e MYSQL_USER=olog_user -e MYSQL_ROOT_PASSWORD=password -e MYSQL_PASSWORD=password -e MYSQL_DATABASE=olog -p 3306:3306 --network=olog-network mrakitin/olog-mysql-db:latest`
+2) Start the `olog-server` container in the daemon mode:
+  - `docker run -d --name=olog-server -p 4848:4848 -p 8181:8181 --network=olog-network mrakitin/olog-server:latest asadmin --user=admin --passwordfile=/tmp/glassfishpwd start-domain -v`
+3) Access this page in your browser: https://localhost:8181 (accept the security certificate warning)
 
-Database's environment variables: 
-
-1) `DB_USER` is the username used to connect to the database.
-2) `DB_PASSWORD` is the password.
-3) `DB_NAME` is the database's name. The default value is `olog`.
-4) `DB_URL` is the database's hostname or IP address. The default value for this parameter is set to the hostname of the [MySQL database container](https://github.com/lnls-sirius/docker-olog-compose/blob/master/swarm/docker-swarm.yml), i.e, `olog-mysql-db`.
-
-LDAP authentication server's environment variables:
-
-1) `REALM_BASE_DN` is the user base distinguished name. 
-2) `REALM_URL` is the server's URL.
-3) `REALM_SEARCH_FILTER` is the user search filter.
-4) `REALM_GROUP_FILTER` is the group search filter.
-4) `REALM_SEARCH_BIND_DN` is the binding distinguished name. Optional parameter.
-5) `REALM_SEARCH_BIND_PASS` is the binding password. Optional parameter.
+That should spin 2 Docker containers with the following exposed ports:
+```
+CONTAINER ID        IMAGE                           COMMAND                  CREATED             STATUS              PORTS                                            NAMES
+18a99712603a        mrakitin/olog-server:latest     "asadmin --user=admi…"   5 minutes ago       Up 5 minutes        0.0.0.0:4848->4848/tcp, 0.0.0.0:8181->8181/tcp   olog-server
+ad314a3f34d9        mrakitin/olog-mysql-db:latest   "docker-entrypoint.s…"   17 minutes ago      Up 17 minutes       0.0.0.0:3306->3306/tcp, 33060/tcp                olog-mysql-db
+```
 
 ## Dockerhub
 
-The image described by this project was pushed into [this Dockerhub repo](https://hub.docker.com/r/lnlscon/olog-server/).
+The following images are pushed to the Dockerhub repos:
+- https://hub.docker.com/r/mrakitin/olog-server
+- https://hub.docker.com/r/mrakitin/olog-mysql-db

@@ -16,11 +16,6 @@ RUN unzip ${GLASSFISH_CONF_FOLDER}/glassfish-${GLASSFISH_VERSION}.zip -d /
 RUN rm ${GLASSFISH_CONF_FOLDER}/glassfish-${GLASSFISH_VERSION}.zip
 
 
-# Sets postgresql connector jar
-ENV POSTGRES_CONNECTOR postgresql-42.1.4
-RUN mkdir -p ${GLASSFISH_HOME}/glassfish/lib
-RUN wget -P ${GLASSFISH_HOME}/glassfish/lib https://jdbc.postgresql.org/download/${POSTGRES_CONNECTOR}.jar
-
 # Sets mysql connector jar
 ENV MYSQL_CONNECTOR mysql-connector-java-5.1.41
 RUN wget -P ${GLASSFISH_CONF_FOLDER} https://dev.mysql.com/get/Downloads/Connector-J/${MYSQL_CONNECTOR}.tar.gz
@@ -47,7 +42,6 @@ ENV HISTFILE=/root/.bash_history
 RUN git clone https://github.com/Olog/logbook.git ${GLASSFISH_CONF_FOLDER}/logbook
 
 # Retrieves wait-for-it.sh script
-
 RUN mkdir -p /opt/wait-for-it
 RUN git clone https://github.com/vishnubob/wait-for-it.git /opt/wait-for-it
 
