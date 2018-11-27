@@ -1,13 +1,8 @@
-#
-# Docker image for logging service olog.
-#
-# Gustavo Ciotto Pinton
-# Controls Group - Brazilian Synchrotron Light Source Laboratory - LNLS
-#
+# Docker image for logging service olog
 
 FROM openjdk:8-jdk
 
-MAINTAINER Gustavo Ciotto
+MAINTAINER Maksim Rakitin <mrakitin@bnl.gov>
 
 ENV GLASSFISH_CONF_FOLDER /opt/glassfish
 ENV GLASSFISH_HOME /glassfish4
@@ -58,6 +53,6 @@ RUN git clone https://github.com/vishnubob/wait-for-it.git /opt/wait-for-it
 
 COPY bin/olog-service-2.2.9.war ${GLASSFISH_CONF_FOLDER}/olog-service-2.2.9.war
 
-COPY setup-olog.sh index.html ${GLASSFISH_CONF_FOLDER}/
+COPY setup-olog.sh env.sh index.html ${GLASSFISH_CONF_FOLDER}/
 
-# CMD ["sh", "-c", "${GLASSFISH_CONF_FOLDER}/setup-olog.sh"]
+RUN ${GLASSFISH_CONF_FOLDER}/setup-olog.sh
