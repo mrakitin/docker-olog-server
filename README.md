@@ -2,6 +2,8 @@
 
 This Docker image is based on https://github.com/lnls-sirius/docker-olog-server.
 
+Works in pair with https://github.com/mrakitin/docker-olog-mysql-db.
+
 ## Running
 
 ### Cloning the repos and using convenience run scripts:
